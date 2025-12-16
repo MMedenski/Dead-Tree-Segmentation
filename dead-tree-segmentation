@@ -1,0 +1,458 @@
+# **Task nr.6**
+
+
+> **Marcin Medeński 23GTS-SP**
+
+
+---
+
+# Pipeline of the code
+
+---
+
+1.   RGB + NRG
+2.   Creating mask for each
+3.  Connection_mask
+4.  Comparisoon of mask
+5.  IoU + confusion matrix
+6.  Threshold optimalization
+
+# Libraries
+
+---
+"""
+
+import numpy as np
+from skimage import io, color, morphology, filters
+import matplotlib.pyplot as plt
+import os, glob
+import cv2
+from sklearn.metrics import confusion_matrix, classification_report
+
+"""# Connection with google disk
+
+---
+
+
+"""
+
+from google.colab import drive
+drive.mount('/content/drive')
+
+"""# Import images from kaggle
+
+---
+
+
+"""
+
+import kagglehub
+
+path = kagglehub.dataset_download("meteahishali/aerial-imagery-for-standing-dead-tree-segmentation")
+
+print("Path to dataset files:", path)
+
+"""# Global parameters
+
+---
+
+
+"""
+
+paths_img = sorted(glob.glob("/kaggle/input/aerial-imagery-for-standing-dead-tree-segmentation/USA_segmentation/RGB_images/*.png"))
+paths_img_nrg = sorted(glob.glob("/kaggle/input/aerial-imagery-for-standing-dead-tree-segmentation/USA_segmentation/NRG_images/*.png"))
+paths_mask = sorted(glob.glob("/kaggle/input/aerial-imagery-for-standing-dead-tree-segmentation/USA_segmentation/masks/*.png"))
+hue_min =  0.75
+hue_max =  0.95
+sat_thr =  0.20
+val_thr =  0.55
+
+num_images = 10
+comparison_results = []
+num_compare = 10
+
+"""# Program Functions
+
+---
+
+
+"""
+
+def generate_segment_mask_rgb(rgb_image, hue_min, hue_max, sat_thr, val_thr):
+
+    hsv = color.rgb2hsv(rgb_image.astype(np.float32) / 255.0)
+
+    H = hsv[:, :, 0]
+    S = hsv[:, :, 1]
+    V = hsv[:, :, 2]
+
+    hue_mask = (H > hue_min) & (H < hue_max)
+    saturation_mask = S > sat_thr
+    value_mask = V > val_thr
+
+    mask_rgb = hue_mask & saturation_mask & value_mask
+    return mask_rgb.astype(np.uint8)
+
+def generate_segment_mask_nrg(nrg_image):
+    nrg = nrg_image.astype(np.float32)
+
+    nir  = nrg[:,:,0]
+    red  = nrg[:,:,1]
+    green = nrg[:,:,2]
+
+    nir_norm  = (nir - nir.min()) / (nir.max() - nir.min() + 1e-6)
+    red_norm  = (red - red.min()) / (red.max() - red.min() + 1e-6)
+    green_norm = (green - green.min()) / (green.max() - green.min() + 1e-6)
+
+    mask = (
+        (nir_norm < 0.40) &
+        (red_norm > 0.55) &
+        (green_norm > 0.55)
+    )
+
+    return mask.astype(np.uint8)
+
+def connection_mask(rgb_image, nrg_image, hue_min, hue_max, sat_thr, val_thr):
+
+    mask_rgb = generate_segment_mask_rgb(
+        rgb_image, hue_min, hue_max, sat_thr, val_thr
+    ).astype(np.uint8)
+
+    mask_nrg = generate_segment_mask_nrg(nrg_image).astype(np.uint8)
+
+    combined = np.zeros_like(mask_rgb, dtype=bool)
+
+    combined[(mask_rgb == 1) & (mask_nrg == 1)] = 1
+    combined[(mask_rgb == 1) & (mask_nrg == 0)] = 1
+    combined[(mask_rgb == 0) & (mask_nrg == 1)] = 0
+    combined[(mask_rgb == 0) & (mask_nrg == 0)] = 0
+
+
+    combined = morphology.binary_opening(combined, morphology.disk(1))
+    combined = morphology.binary_closing(combined, morphology.disk(2))
+    combined = morphology.remove_small_objects(combined, min_size=50)
+    combined = morphology.remove_small_holes(combined, area_threshold=100)
+    combined = mask_rgb & morphology.binary_dilation(mask_nrg, morphology.disk(2))
+    combined = morphology.binary_closing(combined, morphology.disk(4))
+
+
+
+    return combined.astype(np.uint8)
+
+def combined_masks(img, nrg):
+    mask_rgb = generate_segment_mask_rgb(
+        img, hue_min, hue_max, sat_thr, val_thr
+    ).astype(bool)
+
+    mask_nrg = generate_segment_mask_nrg(nrg).astype(bool)
+
+    combined = mask_rgb | mask_nrg
+
+    return combined.astype(np.uint8)
+
+
+
+def iou(mask1, mask2):
+    inter = np.logical_and(mask1, mask2)
+    all = np.logical_or(mask1, mask2)
+
+    inter_sum = np.sum(inter)
+    all_sum = np.sum(all)
+
+    iou_score = inter_sum / all_sum
+    return iou_score
+
+def show_images():
+    comparison_results.clear()
+    for i in range(min(num_compare, len(paths_img))):
+        img_path = paths_img[i]
+        nrg_path = paths_img_nrg[i]
+        main_mask_path = paths_mask[i]
+
+        img = io.imread(img_path)
+        nrg = io.imread(nrg_path)
+        generated_mask = connection_mask(img, nrg, hue_min, hue_max, sat_thr, val_thr);
+        rgb_mask = generate_segment_mask_rgb(img, hue_min, hue_max, sat_thr, val_thr);
+        nrg_mask = generate_segment_mask_nrg(nrg);
+        combined_mask = combined_masks(img, nrg)
+
+        main_mask = cv2.imread(main_mask_path, cv2.IMREAD_GRAYSCALE);
+
+        iou_score = iou(generated_mask, main_mask);
+
+        comparison_results.append({
+            'original_image': img,
+            'generated_mask': generated_mask,
+            'combined_mask': combined_mask,
+            'rgb_mask': rgb_mask,
+            'nrg_mask': nrg_mask,
+            'main_mask': main_mask,
+            'iou_score': iou_score,
+            'image_filename': os.path.basename(img_path)
+        });
+
+def show_comparison_results():
+    for result in comparison_results:
+        original_image = result['original_image']
+        generated_mask = result['generated_mask']
+        rgb_mask = result['rgb_mask']
+        nrg_mask = result['nrg_mask']
+        main_mask = result['main_mask']
+        combined_mask = result['combined_mask']
+        iou_score = result['iou_score']
+        image_filename = result['image_filename']
+
+        plt.figure(figsize=(15, 10))
+
+        plt.subplot(2, 3, 1)
+        plt.imshow(original_image)
+        plt.title(image_filename)
+        plt.axis('off')
+
+        plt.subplot(2, 3, 2)
+        plt.imshow(generated_mask, cmap='gray')
+        plt.title("Generated Mask")
+        plt.axis('off')
+
+        plt.subplot(2, 3, 3)
+        plt.imshow(main_mask, cmap='gray')
+        plt.title("Main Mask")
+        plt.axis('off')
+
+        plt.subplot(2, 3, 4)
+        plt.imshow(rgb_mask, cmap='gray')
+        plt.title("RGB Mask")
+        plt.axis('off')
+
+        plt.subplot(2, 3, 5)
+        plt.imshow(nrg_mask, cmap='gray')
+        plt.title("NRG Mask")
+        plt.axis('off')
+
+        plt.subplot(2, 3, 6)
+        plt.imshow(combined_mask, cmap='gray')
+        plt.title("Combined RGB + NRG")
+        plt.axis('off')
+
+
+        plt.suptitle(f"IoU Score: {iou_score*100:.1f}%")
+        plt.tight_layout()
+        plt.show()
+
+def result_all_stats():
+    iou_scores = [result['iou_score'] for result in comparison_results]
+    image_filenames = [os.path.basename(result['image_filename']) for result in comparison_results]
+
+    plt.figure(figsize=(15, 7))
+    plt.bar(image_filenames, iou_scores, color='skyblue')
+    plt.xlabel('Nazwa pliku obrazu')
+    plt.ylabel('Wynik IoU')
+    plt.title('Comparison results IoUs for all sets')
+    plt.xticks(rotation=45, ha='right')
+    plt.ylim(0, 1)
+    plt.tight_layout()
+    plt.show()
+
+def confusion_matrix_all():
+    y_main_all = []
+    y_pred_all = []
+
+    for result in comparison_results:
+        main_mask = result['main_mask'].astype(bool).flatten()
+        pred_mask = result['generated_mask'].astype(bool).flatten()
+
+        y_main_all.extend(main_mask)
+        y_pred_all.extend(pred_mask)
+
+    cm = confusion_matrix(y_main_all, y_pred_all)
+    print("CONFUSION MATRIX (for all images)")
+    print("TN  FP")
+    print("FN  TP")
+    print(cm)
+    return confusion_matrix(y_main_all, y_pred_all)
+
+def plot_confusion_matrix(cm, title="Confusion Matrix"):
+
+    labels = ["Background", "Dead Tree"]
+
+    plt.figure(figsize=(5, 4))
+    plt.imshow(cm)
+    plt.title(title)
+    plt.xlabel("Predicted")
+    plt.ylabel("Ground Truth")
+
+    plt.xticks([0, 1], labels)
+    plt.yticks([0, 1], labels)
+
+    for i in range(cm.shape[0]):
+        for j in range(cm.shape[1]):
+            plt.text(j, i, cm[i, j],
+                     ha="center", va="center", color="black")
+
+    plt.colorbar()
+    plt.tight_layout()
+    plt.show()
+
+def search_best_thresholds(hue_ranges, sats, vals):
+    rgb_images = [io.imread(p) for p in paths_img[:num_compare]]
+    main_masks = [cv2.imread(p, cv2.IMREAD_GRAYSCALE).astype(bool)
+                  for p in paths_mask[:num_compare]]
+
+    hsv_images = [color.rgb2hsv(img.astype(np.float32) / 255.0) for img in rgb_images]
+
+    best_iou = -1
+    best_params = (None, None, None, None)
+
+    hue_iou = []
+    sat_iou = []
+    val_iou = []
+
+    for (hmin, hmax) in hue_ranges:
+        ious = []
+        for s in sats:
+            for v in vals:
+                for hsv, main in zip(hsv_images, main_masks):
+                    H, S, V = hsv[:,:,0], hsv[:,:,1], hsv[:,:,2]
+                    mask = (H > hmin) & (H < hmax) & (S > s) & (V > v)
+
+                    inter = np.logical_and(mask, main).sum()
+                    union = np.logical_or(mask, main).sum()
+                    ious.append(inter / union if union != 0 else 0)
+
+        hue_iou.append(np.mean(ious))
+
+    for s in sats:
+        ious = []
+        for (hmin, hmax) in hue_ranges:
+            for v in vals:
+                for hsv, main in zip(hsv_images, main_masks):
+                    H, S, V = hsv[:,:,0], hsv[:,:,1], hsv[:,:,2]
+                    mask = (H > hmin) & (H < hmax) & (S > s) & (V > v)
+
+                    inter = np.logical_and(mask, main).sum()
+                    union = np.logical_or(mask, main).sum()
+                    ious.append(inter / union if union != 0 else 0)
+
+        sat_iou.append(np.mean(ious))
+
+    for v in vals:
+        ious = []
+        for (hmin, hmax) in hue_ranges:
+            for s in sats:
+                for hsv, main in zip(hsv_images, main_masks):
+                    H, S, V = hsv[:,:,0], hsv[:,:,1], hsv[:,:,2]
+                    mask = (H > hmin) & (H < hmax) & (S > s) & (V > v)
+
+                    inter = np.logical_and(mask, main).sum()
+                    union = np.logical_or(mask, main).sum()
+                    ious.append(inter / union if union != 0 else 0)
+
+        val_iou.append(np.mean(ious))
+
+    for (hmin, hmax) in hue_ranges:
+        for s in sats:
+            for v in vals:
+                ious = []
+                for hsv, main in zip(hsv_images, main_masks):
+                    H, S, V = hsv[:,:,0], hsv[:,:,1], hsv[:,:,2]
+                    mask = (H > hmin) & (H < hmax) & (S > s) & (V > v)
+
+                    inter = np.logical_and(mask, main).sum()
+                    union = np.logical_or(mask, main).sum()
+                    ious.append(inter / union if union != 0 else 0)
+
+                mean_iou = np.mean(ious)
+                if mean_iou > best_iou:
+                    best_iou = mean_iou
+                    best_params = (hmin, hmax, s, v)
+
+
+    plt.figure(figsize=(18,5))
+
+    plt.subplot(1,3,1)
+    plt.bar(range(len(hue_ranges)), hue_iou)
+    plt.xticks(range(len(hue_ranges)),
+               [f"{h[0]:.2f}-{h[1]:.2f}" for h in hue_ranges],
+               rotation=45)
+    plt.title("IoU vs Hue range")
+    plt.ylabel("Mean IoU")
+
+    plt.subplot(1,3,2)
+    plt.bar(range(len(sats)), sat_iou)
+    plt.xticks(range(len(sats)), [f"{s:.2f}" for s in sats])
+    plt.title("IoU vs Saturation")
+
+    plt.subplot(1,3,3)
+    plt.bar(range(len(vals)), val_iou)
+    plt.xticks(range(len(vals)), [f"{v:.2f}" for v in vals])
+    plt.title("IoU vs Value")
+
+    plt.tight_layout()
+    plt.show()
+
+    print("Best IoU:", best_iou)
+    print("Best params:")
+    print("Hue:", best_params[0], "-", best_params[1])
+    print("S  :", best_params[2])
+    print("V  :", best_params[3])
+
+    return best_params, best_iou
+
+"""#Functions
+
+---
+
+
+> **Main**
+
+>**Finding the best threshold**
+"""
+
+def main():
+    for i in range(min(num_images, len(paths_img))):
+
+        img = io.imread(paths_img[i])
+        nrg = io.imread(paths_img_nrg[i])
+        generated_mask = connection_mask(img, nrg, hue_min, hue_max, sat_thr, val_thr)
+        rgb_mask = generate_segment_mask_rgb(img, hue_min, hue_max, sat_thr, val_thr);
+        nrg_mask = generate_segment_mask_nrg(nrg);
+
+        plt.figure(figsize=(25, 8))
+
+        plt.subplot(1, 4, 1)
+        plt.imshow(img)
+        plt.title(f"Original Image {i+1}:")
+        plt.axis('off')
+
+        plt.subplot(1, 4, 2)
+        plt.imshow(generated_mask, cmap='gray')
+        plt.title(f"Generated Mask {i+1}")
+        plt.axis('off')
+
+        plt.subplot(1, 4, 3)
+        plt.imshow(rgb_mask, cmap='gray')
+        plt.title(f"Mask on RGB {i+1}")
+        plt.axis('off')
+
+        plt.subplot(1, 4, 4)
+        plt.imshow(nrg_mask, cmap='gray')
+        plt.title(f"Mask on NRG {i+1}")
+        plt.axis('off')
+
+    plt.show()
+    show_images();
+    show_comparison_results();
+    result_all_stats();
+    cm = confusion_matrix_all()
+    plot_confusion_matrix(cm)
+
+if __name__ == "__main__":
+  main()
+
+"""dodac zeby plot Confusion matrix poazkywalo w procentach, w skrypcie maja sie zapisywac wyniki"""
+
+search_best_thresholds(
+    hue_ranges=[(0.7, 0.8), (0.75, 0.85), (0.8, 0.9)],
+    sats=[0.15, 0.2],
+    vals=[0.5, 0.55]
+)

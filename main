@@ -11,26 +11,32 @@
 # Libraries
 
 import numpy as np
+import configparser
 from skimage import io, color, morphology, filters
 import matplotlib.pyplot as plt
 import os, glob
 import cv2
 from sklearn.metrics import confusion_matrix, classification_report
 
-# Loading configuration from config.txt
+# Loading configuration from config.ini 
 
-def load_config(path="config.txt"):
-    config = {}
+def load_config(path="config.ini"):
+    parser = configparser.ConfigParser()
+    parser.read(path)
 
-    with open(path, "r", encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
+    config = {
+        "paths_img": parser["paths"]["rgb"],
+        "paths_img_nrg": parser["paths"]["nrg"],
+        "paths_mask": parser["paths"]["masks"],
 
-            if not line or line.startswith("#"):
-                continue
+        "hue_min": parser.getfloat("thresholds", "hue_min"),
+        "hue_max": parser.getfloat("thresholds", "hue_max"),
+        "sat_thr": parser.getfloat("thresholds", "sat_thr"),
+        "val_thr": parser.getfloat("thresholds", "val_thr"),
 
-            key, value = line.split("=", 1)
-            config[key.strip()] = value.strip()
+        "num_images": parser.getint("general", "num_images"),
+        "num_compare": parser.getint("general", "num_compare"),
+    }
 
     return config
 

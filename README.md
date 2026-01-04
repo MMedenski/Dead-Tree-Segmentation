@@ -12,9 +12,7 @@ The main goal of this project is to:
 - fuse RGB-based and NRG-based masks,
 - evaluate segmentation quality using IoU and confusion matrix,
 - allow easy experimentation through an external configuration file.
-
-The implementation is written in Python and designed for reproducible experimentation.
-
+- 
 ---
 
 ## Segmentation Pipeline
@@ -69,9 +67,8 @@ The segmentation results are evaluated using:
 
 ---
 
-## Installation and Running the Project
-
 ## Project Setup
+
 ### Requirements
 
 1. Prepare external libraries for the program using pip :
@@ -86,12 +83,13 @@ That program includes:
 - scikit-learn
   
 2. Make sure that main.py and config.txt are located in the same directory.
-3. Verify that the dataset folders specified in config.txt exist and contain:
+
+4. Verify that the dataset folders specified in config.txt exist and contain:
 
 - RGB images,
 - NRG images,
 - ground truth masks.
-- 
+  
 4. Optionally adjust segmentation thresholds and the number of images to be processed in config.txt.
 
 ### Running the program
@@ -107,6 +105,8 @@ The program performs the following steps automatically:
 - displays qualitative and quantitative results.
 
 No manual interaction is required apart from optional keyboard navigation in visualization windows and modification of parameters.
+
+---
 
 Thank you for reading and enjoy using this code.
 

@@ -1,26 +1,14 @@
-# **Task nr.6**
+# Segmentation Pipeline
 
+#1. Load RGB and NRG images
+#2. Generate independent segmentation masks (RGB / NRG)
+#3. Fuse masks using morphological operations
+#4. Compare predicted masks with ground truth
+#5. Compute IoU and confusion matrix
+#6. Optimize segmentation thresholds
 
-> **Marcin Medeński 23GTS-SP**
-
-
----
-
-# Pipeline of the code
-
----
-
-1.   RGB + NRG
-2.   Creating mask for each
-3.  Connection_mask
-4.  Comparisoon of mask
-5.  IoU + confusion matrix
-6.  Threshold optimalization
 
 # Libraries
-
----
-"""
 
 import numpy as np
 from skimage import io, color, morphology, filters
@@ -29,54 +17,44 @@ import os, glob
 import cv2
 from sklearn.metrics import confusion_matrix, classification_report
 
-"""# Connection with google disk
+# Loading configuration from config.txt
 
----
+def load_config(path="config.txt"):
+    config = {}
 
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
 
-"""
+            if not line or line.startswith("#"):
+                continue
 
-from google.colab import drive
-drive.mount('/content/drive')
+            key, value = line.split("=", 1)
+            config[key.strip()] = value.strip()
 
-"""# Import images from kaggle
+    return config
 
----
+config = load_config()
 
+paths_img = sorted(glob.glob(config["paths_img"]))
+paths_img_nrg = sorted(glob.glob(config["paths_img_nrg"]))
+paths_mask = sorted(glob.glob(config["paths_mask"]))
 
-"""
+hue_min = float(config["hue_min"])
+hue_max = float(config["hue_max"])
+sat_thr = float(config["sat_thr"])
+val_thr = float(config["val_thr"])
 
-import kagglehub
+num_images = int(config["num_images"])
+num_compare = int(config["num_compare"])
 
-path = kagglehub.dataset_download("meteahishali/aerial-imagery-for-standing-dead-tree-segmentation")
-
-print("Path to dataset files:", path)
-
-"""# Global parameters
-
----
-
-
-"""
-
-paths_img = sorted(glob.glob("/kaggle/input/aerial-imagery-for-standing-dead-tree-segmentation/USA_segmentation/RGB_images/*.png"))
-paths_img_nrg = sorted(glob.glob("/kaggle/input/aerial-imagery-for-standing-dead-tree-segmentation/USA_segmentation/NRG_images/*.png"))
-paths_mask = sorted(glob.glob("/kaggle/input/aerial-imagery-for-standing-dead-tree-segmentation/USA_segmentation/masks/*.png"))
-hue_min =  0.75
-hue_max =  0.95
-sat_thr =  0.20
-val_thr =  0.55
-
-num_images = 10
 comparison_results = []
-num_compare = 10
 
-"""# Program Functions
+assert len(paths_img) > 0, "No RGB images found in config path"
+assert len(paths_img_nrg) > 0, "No NRG images found in config path"
+assert len(paths_mask) > 0, "No main masks found in config path"
 
----
-
-
-"""
+# Program Functions
 
 def generate_segment_mask_rgb(rgb_image, hue_min, hue_max, sat_thr, val_thr):
 
@@ -162,8 +140,56 @@ def iou(mask1, mask2):
     iou_score = inter_sum / all_sum
     return iou_score
 
-def show_images():
+def preview_loaded_images():
+    if len(paths_img) == 0:
+        print("No images found")
+        return
+
+    idx = 0
+
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6))
+
+    def draw():
+        img = io.imread(paths_img[idx])
+        nrg = io.imread(paths_img_nrg[idx])
+        mask = cv2.imread(paths_mask[idx], cv2.IMREAD_GRAYSCALE)
+
+        axes[0].imshow(img)
+        axes[0].set_title("RGB Image")
+
+        axes[1].imshow(nrg)
+        axes[1].set_title("NRG Image")
+
+        axes[2].imshow(mask, cmap="gray")
+        axes[2].set_title("Generated Mask")
+
+        for ax in axes:
+            ax.axis("off")
+
+        fig.suptitle(
+            f"{idx+1}/{len(paths_img)} | {os.path.basename(paths_img[idx])}",
+            fontsize=14
+        )
+
+        fig.canvas.draw_idle()
+
+    def on_key(event):
+        nonlocal idx
+        if event.key == "right":
+            idx = (idx + 1) % len(paths_img)
+            draw()
+        elif event.key == "left":
+            idx = (idx - 1) % len(paths_img)
+            draw()
+
+    fig.canvas.mpl_connect("key_press_event", on_key)
+    draw()
+    plt.show()
+
+
+def run_evaluation():
     comparison_results.clear()
+    
     for i in range(min(num_compare, len(paths_img))):
         img_path = paths_img[i]
         nrg_path = paths_img_nrg[i]
@@ -191,53 +217,60 @@ def show_images():
             'image_filename': os.path.basename(img_path)
         });
 
+
 def show_comparison_results():
-    for result in comparison_results:
-        original_image = result['original_image']
-        generated_mask = result['generated_mask']
-        rgb_mask = result['rgb_mask']
-        nrg_mask = result['nrg_mask']
-        main_mask = result['main_mask']
-        combined_mask = result['combined_mask']
-        iou_score = result['iou_score']
-        image_filename = result['image_filename']
+    if len(comparison_results) == 0:
+        print("No comparison results to show")
+        return
 
-        plt.figure(figsize=(15, 10))
+    idx = 0
 
-        plt.subplot(2, 3, 1)
-        plt.imshow(original_image)
-        plt.title(image_filename)
-        plt.axis('off')
+    fig, axes = plt.subplots(2, 3, figsize=(16, 10))
+    axes = axes.flatten()
 
-        plt.subplot(2, 3, 2)
-        plt.imshow(generated_mask, cmap='gray')
-        plt.title("Generated Mask")
-        plt.axis('off')
+    def draw():
+        result = comparison_results[idx]
 
-        plt.subplot(2, 3, 3)
-        plt.imshow(main_mask, cmap='gray')
-        plt.title("Main Mask")
-        plt.axis('off')
+        axes[0].imshow(result['original_image'])
+        axes[0].set_title(result['image_filename'])
 
-        plt.subplot(2, 3, 4)
-        plt.imshow(rgb_mask, cmap='gray')
-        plt.title("RGB Mask")
-        plt.axis('off')
+        axes[1].imshow(result['generated_mask'], cmap='gray')
+        axes[1].set_title("Generated Mask")
 
-        plt.subplot(2, 3, 5)
-        plt.imshow(nrg_mask, cmap='gray')
-        plt.title("NRG Mask")
-        plt.axis('off')
+        axes[2].imshow(result['main_mask'], cmap='gray')
+        axes[2].set_title("Main Mask")
 
-        plt.subplot(2, 3, 6)
-        plt.imshow(combined_mask, cmap='gray')
-        plt.title("Combined RGB + NRG")
-        plt.axis('off')
+        axes[3].imshow(result['rgb_mask'], cmap='gray')
+        axes[3].set_title("RGB Mask")
 
+        axes[4].imshow(result['nrg_mask'], cmap='gray')
+        axes[4].set_title("NRG Mask")
 
-        plt.suptitle(f"IoU Score: {iou_score*100:.1f}%")
-        plt.tight_layout()
-        plt.show()
+        axes[5].imshow(result['combined_mask'], cmap='gray')
+        axes[5].set_title("Combined RGB + NRG")
+
+        for ax in axes:
+            ax.axis("off")
+
+        fig.suptitle(
+            f"{idx+1}/{len(comparison_results)} | IoU: {result['iou_score']*100:.1f}%",
+            fontsize=14
+        )
+
+        fig.canvas.draw_idle()
+
+    def on_key(event):
+        nonlocal idx
+        if event.key == "right":
+            idx = (idx + 1) % len(comparison_results)
+            draw()
+        elif event.key == "left":
+            idx = (idx - 1) % len(comparison_results)
+            draw()
+
+    fig.canvas.mpl_connect("key_press_event", on_key)
+    draw()
+    plt.show()
 
 def result_all_stats():
     iou_scores = [result['iou_score'] for result in comparison_results]
@@ -271,27 +304,53 @@ def confusion_matrix_all():
     print(cm)
     return confusion_matrix(y_main_all, y_pred_all)
 
-def plot_confusion_matrix(cm, title="Confusion Matrix"):
+def plot_confusion_matrix(cm, title="Confusion Matrix – normalized (%)"):
 
     labels = ["Background", "Dead Tree"]
 
-    plt.figure(figsize=(5, 4))
-    plt.imshow(cm)
-    plt.title(title)
-    plt.xlabel("Predicted")
-    plt.ylabel("Ground Truth")
+    cm = cm.astype(np.float32)
+    cm_percent = cm / cm.sum(axis=1, keepdims=True) * 100
 
-    plt.xticks([0, 1], labels)
-    plt.yticks([0, 1], labels)
+    fig, ax = plt.subplots(figsize=(6, 5))
+    im = ax.imshow(cm_percent, vmin=0, vmax=100)
 
-    for i in range(cm.shape[0]):
-        for j in range(cm.shape[1]):
-            plt.text(j, i, cm[i, j],
-                     ha="center", va="center", color="black")
+    ax.set_title(title, fontsize=14, pad=10)
+    ax.set_xlabel("Prediction", fontsize=12)
+    ax.set_ylabel("Ground Truth", fontsize=12)
 
-    plt.colorbar()
+    ax.set_xticks([0, 1])
+    ax.set_yticks([0, 1])
+    ax.set_xticklabels(labels)
+    ax.set_yticklabels(labels)
+
+    # Explicit cell labels
+    cell_names = [
+        ["TN\n(Background → Background)", "FP\n(Background → Dead Tree)"],
+        ["FN\n(Dead Tree → Background)", "TP\n(Dead Tree → Dead Tree)"]
+    ]
+
+    for i in range(2):
+        for j in range(2):
+            value = cm_percent[i, j]
+            text_color = "white" if value > 50 else "black"
+
+            ax.text(
+                j, i,
+                f"{cell_names[i][j]}\n{value:.1f}%",
+                ha="center",
+                va="center",
+                color=text_color,
+                fontsize=11,
+                fontweight="bold"
+            )
+
+    cbar = fig.colorbar(im, ax=ax)
+    cbar.set_label("Percentage of pixels (%)")
+
     plt.tight_layout()
     plt.show()
+
+
 
 def search_best_thresholds(hue_ranges, sats, vals):
     rgb_images = [io.imread(p) for p in paths_img[:num_compare]]
@@ -398,58 +457,18 @@ def search_best_thresholds(hue_ranges, sats, vals):
 
     return best_params, best_iou
 
-"""#Functions
-
----
-
-
-> **Main**
-
->**Finding the best threshold**
-"""
 
 def main():
-    for i in range(min(num_images, len(paths_img))):
-
-        img = io.imread(paths_img[i])
-        nrg = io.imread(paths_img_nrg[i])
-        generated_mask = connection_mask(img, nrg, hue_min, hue_max, sat_thr, val_thr)
-        rgb_mask = generate_segment_mask_rgb(img, hue_min, hue_max, sat_thr, val_thr);
-        nrg_mask = generate_segment_mask_nrg(nrg);
-
-        plt.figure(figsize=(25, 8))
-
-        plt.subplot(1, 4, 1)
-        plt.imshow(img)
-        plt.title(f"Original Image {i+1}:")
-        plt.axis('off')
-
-        plt.subplot(1, 4, 2)
-        plt.imshow(generated_mask, cmap='gray')
-        plt.title(f"Generated Mask {i+1}")
-        plt.axis('off')
-
-        plt.subplot(1, 4, 3)
-        plt.imshow(rgb_mask, cmap='gray')
-        plt.title(f"Mask on RGB {i+1}")
-        plt.axis('off')
-
-        plt.subplot(1, 4, 4)
-        plt.imshow(nrg_mask, cmap='gray')
-        plt.title(f"Mask on NRG {i+1}")
-        plt.axis('off')
-
-    plt.show()
-    show_images();
-    show_comparison_results();
-    result_all_stats();
+    preview_loaded_images()
+    run_evaluation()
+    show_comparison_results()
+    result_all_stats()
     cm = confusion_matrix_all()
     plot_confusion_matrix(cm)
 
+
 if __name__ == "__main__":
   main()
-
-"""dodac zeby plot Confusion matrix poazkywalo w procentach, w skrypcie maja sie zapisywac wyniki"""
 
 search_best_thresholds(
     hue_ranges=[(0.7, 0.8), (0.75, 0.85), (0.8, 0.9)],

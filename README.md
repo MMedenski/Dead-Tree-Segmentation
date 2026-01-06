@@ -20,8 +20,8 @@ The segmentation pipeline consists of the following steps:
 1. Load RGB and NRG images  
 2. Generate independent segmentation masks  
    - RGB-based mask (HSV thresholding)  
-   - NRG-based mask (channel normalization and thresholding)  
-3. Fuse masks using morphological operations  
+   - NRG-based mask (channel normalization)  
+3. Fuse masks using morphological operations 
 4. Compare predicted masks with ground truth masks  
 5. Compute evaluation metrics  
    - Intersection over Union (IoU)  

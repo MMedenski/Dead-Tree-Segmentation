@@ -11,7 +11,6 @@ The main goal of this project is to:
 - segment dead trees from aerial imagery,
 - fuse RGB-based and NRG-based masks,
 - evaluate segmentation quality using IoU and confusion matrix,
-- allow easy experimentation through an external configuration file.
 ---
 
 ## Segmentation Pipeline

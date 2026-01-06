@@ -25,6 +25,7 @@ def load_config(path="config.ini"):
     parser.read(path)
 
     config = {
+
         "paths_img": parser["paths"]["rgb"],
         "paths_img_nrg": parser["paths"]["nrg"],
         "paths_mask": parser["paths"]["masks"],
@@ -463,6 +464,22 @@ def search_best_thresholds(hue_ranges, sats, vals):
 
     return best_params, best_iou
 
+def save_iou_results(filename="iou_results.csv"):
+    if len(comparison_results) == 0:
+        print("No IoU results to save")
+        return
+
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    save_path = os.path.join(script_dir, filename)
+
+    with open(save_path, "w", encoding="utf-8") as f:
+        f.write("image_name - iou\n")
+        for result in comparison_results:
+            f.write(f"{result['image_filename']} - {result['iou_score']*100:.2f}%\n")
+
+    print(f"IoU results saved to: {save_path}")
+
+
 
 def main():
     preview_loaded_images()
@@ -471,6 +488,7 @@ def main():
     result_all_stats()
     cm = confusion_matrix_all()
     plot_confusion_matrix(cm)
+    save_iou_results()
 
 
 if __name__ == "__main__":

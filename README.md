@@ -46,7 +46,7 @@ The number of images used in experiments is fully configurable by the user via t
 
 ## Configuration
 
-All global parameters and dataset paths are stored in an external configuration file config.txt which includes:
+All global parameters and dataset paths are stored in an external configuration file config.yaml which includes:
 
 - dataset paths (RGB, NRG, masks),
 - segmentation thresholds,
@@ -80,15 +80,15 @@ That program includes:
 - opencv-python  
 - scikit-learn
   
-2. Make sure that main.py and config.txt are located in the same directory.
+2. Make sure that main.py and config.yaml are located in the same directory.
 
-4. Verify that the dataset folders specified in config.txt exist and contain:
+4. Verify that the dataset folders specified in config.yaml exist and contain:
 
 - RGB images,
 - NRG images,
 - ground truth masks.
   
-4. Optionally adjust segmentation thresholds and the number of images to be processed in config.txt.
+4. Optionally adjust segmentation thresholds and the number of images to be processed in config.yaml.
 
 ### Running the program
 To run the segmentation, execute:

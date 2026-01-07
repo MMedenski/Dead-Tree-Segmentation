@@ -3,7 +3,7 @@
 #1. Load RGB and NRG images
 #2. Generate independent segmentation masks (RGB / NRG)
 #3. Fuse masks using morphological operations
-#4. Compare predicted masks with ground truth
+#4. Compare predicted masks with main masks
 #5. Compute IoU and confusion matrix
 #6. Optimize segmentation thresholds
 
@@ -323,7 +323,7 @@ def plot_confusion_matrix(cm, title="Confusion Matrix – normalized (%)"):
 
     ax.set_title(title, fontsize=14, pad=10)
     ax.set_xlabel("Prediction", fontsize=12)
-    ax.set_ylabel("Ground Truth", fontsize=12)
+    ax.set_ylabel("Main Truth", fontsize=12)
 
     ax.set_xticks([0, 1])
     ax.set_yticks([0, 1])

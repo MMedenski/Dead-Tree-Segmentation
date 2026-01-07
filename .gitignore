@@ -6,6 +6,9 @@ __pycache__/
 # local config (user-specific paths)
 config.yaml
 
+# generated segmentation outputs
+generated masks/
+
 
 # C extensions
 *.so

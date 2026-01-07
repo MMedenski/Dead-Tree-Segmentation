@@ -1,0 +1,15 @@
+paths:
+  rgb: ./Dead-Tree-Segmentation-main/data/RGB_images/*.png #<PATHTODATA>
+  nrg: ./Dead-Tree-Segmentation-main/data/NRG_images/*.png #<PATHTODATA>
+  masks: ./Dead-Tree-Segmentation-main/data/masks/*.png #<PATHTODATA>
+  output: ./Dead-Tree-Segmentation-main/output/ #<PATHTOOUTPUT>
+
+thresholds:
+  hue_min: 0.75
+  hue_max: 0.95
+  sat_thr: 0.25
+  val_thr: 0.55
+
+general:
+  num_images: 10
+  num_compare: 10

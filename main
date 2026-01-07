@@ -479,6 +479,25 @@ def save_iou_results(filename="iou_results.csv"):
 
     print(f"IoU results saved to: {save_path}")
 
+# Saves generated segmentation masks to a specified output directory
+def save_generated_masks(
+    output_dir=r"C:\Dead-Tree-Segmentation-main\data\generated_masks"
+):
+    if len(comparison_results) == 0:
+        print("No generated masks to save")
+        return
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    for result in comparison_results:
+        mask = (result["generated_mask"] * 255).astype(np.uint8)
+        filename = os.path.splitext(result["image_filename"])[0] + "_mask.png"
+        save_path = os.path.join(output_dir, filename)
+
+        cv2.imwrite(save_path, mask)
+
+    print(f"Generated masks saved to: {output_dir}")
+
 
 
 def main():
@@ -489,6 +508,7 @@ def main():
     cm = confusion_matrix_all()
     plot_confusion_matrix(cm)
     save_iou_results()
+    save_generated_masks()
 
 
 if __name__ == "__main__":

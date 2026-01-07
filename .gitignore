@@ -3,6 +3,10 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# local config (user-specific paths)
+config.yaml
+
+
 # C extensions
 *.so
 

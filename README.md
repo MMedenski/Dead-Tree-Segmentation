@@ -46,7 +46,7 @@ The number of images used in experiments is fully configurable by the user via t
 
 ## Configuration
 
-All global parameters and dataset paths are stored in an external configuration file config.yaml which includes:
+All global parameters and dataset paths are stored in an external configuration file `config.yaml` which includes:
 
 - dataset paths (RGB, NRG, masks),
 - segmentation thresholds,
@@ -67,35 +67,56 @@ The segmentation results are evaluated using:
 
 ## Project Setup
 
-### Requirements
+### Requirements and Environment
 
-1. Prepare external libraries for the program using pip :
+This project uses a local Python virtual environment (`.venv`) to manage dependencies.
+
+---
+
+### 1. Create a virtual environment
+**Linux:**
 ```
-pip install numpy scikit-image matplotlib opencv-python scikit-learn
+python3 -m venv .venv
 ```
-That program includes:
-- numpy  
-- scikit-image  
-- matplotlib  
-- opencv-python  
-- scikit-learn
-  
-2. Make sure that main.py and config.yaml are located in the same directory.
+**Windows:**
+```
+python -m venv .venv
+```
+---
 
-4. Verify that the dataset folders specified in config.yaml exist and contain:
+### 2. Activate the virtual environment
+```
+source .venv/bin/activate
+```
+**After activation, the terminal prompt should start with:**
+```
+(.venv)
+```
+---
 
-- RGB images,
-- NRG images,
-- ground truth masks.
-  
-4. Optionally adjust segmentation thresholds and the number of images to be processed in config.yaml.
+### 3. Install required dependencies
+```
+pip install -r requirements.txt
+```
+**All Python libraries will be installed locally inside the virtual environment.**
 
-### Running the program
-To run the segmentation, execute:
+---
+
+### 4. Configuration
+**Create a local configuration file based on the template:**
+```
+cp temp.config.yaml config.yaml
+```
+Edit `config.yaml` and adjust paths to your local dataset.
+The file `config.yaml` is ignored by Git and must not be committed.
+
+---
+
+### 5. Run the project
 ```
 python main.py
 ```
-The program performs the following steps automatically:
+**The program performs the following steps automatically:**
 
 - previews the loaded RGB, NRG, and ground truth images,
 - generates segmentation masks,

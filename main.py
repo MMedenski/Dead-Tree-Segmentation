@@ -45,21 +45,21 @@ def parse_args():
         description="Dead Tree Segmentation Pipeline (RGB + NRG)"
     )
 
-    parser.add_argument("--config", type=str, default="config.yaml",
+    parser.add_argument("-c", "--config", type=str, default="config.yaml",
                         help="Path to config.yaml file")
 
     # Thresholds (override config)
-    parser.add_argument("--hue-min", type=float, help="HSV hue min threshold")
-    parser.add_argument("--hue-max", type=float, help="HSV hue max threshold")
-    parser.add_argument("--sat-thr", type=float, help="HSV saturation threshold")
-    parser.add_argument("--val-thr", type=float, help="HSV value threshold")
+    parser.add_argument("-h_min", "--hue-min", type=float, help="HSV hue min threshold")
+    parser.add_argument("-h_max", "--hue-max", type=float, help="HSV hue max threshold")
+    parser.add_argument("-s", "--sat-thr", type=float, help="HSV saturation threshold")
+    parser.add_argument("-v", "--val-thr", type=float, help="HSV value threshold")
 
     # General
-    parser.add_argument("--num-images", type=int, help="Number of images to preview")
-    parser.add_argument("--num-compare", type=int, help="Number of images for evaluation")
+    parser.add_argument("-ni", "--num-images", type=int, help="Number of images to preview")
+    parser.add_argument("-nc", "--num-compare", type=int, help="Number of images for evaluation")
 
     # Output
-    parser.add_argument("--output-dir", type=str, help="Output directory for results")
+    parser.add_argument("-o", "--output-dir", type=str, help="Output directory for results")
 
     return parser.parse_args()
 

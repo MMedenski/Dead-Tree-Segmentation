@@ -275,7 +275,7 @@ Dead-Tree-Segmentation-main/
 
 ---
 
-## 🏁 Final Notes
+## 📝 Final Notes
 
 This project is suitable as:
 

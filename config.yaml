@@ -1,8 +1,8 @@
 paths:
-  rgb: ./Dead-Tree-Segmentation-main/data/RGB_images/*.png #<PATHTODATA>
-  nrg: ./Dead-Tree-Segmentation-main/data/NRG_images/*.png #<PATHTODATA>
-  masks: ./Dead-Tree-Segmentation-main/data/masks/*.png #<PATHTODATA>
-  output: ./Dead-Tree-Segmentation-main/output/ #<PATHTOOUTPUT>
+  rgb: ./data/RGB_images/*.png #<PATHTODATA>
+  nrg: ./data/NRG_images/*.png #<PATHTODATA>
+  masks: ./data/masks/*.png #<PATHTODATA>
+  output: ./data/generated_masks/ #<PATHTOOUTPUT>
 
 thresholds:
   hue_min: 0.75
@@ -13,3 +13,4 @@ thresholds:
 general:
   num_images: 10
   num_compare: 10
+

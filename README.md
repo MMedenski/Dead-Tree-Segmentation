@@ -42,9 +42,12 @@ This section explains **when and how each mask is created in the pipeline** and 
 
 The original RGB image used as one of the inputs to the segmentation pipeline.
 
-```
-<rgb image>
-```
+<p align="center">
+  <img src="img_readme/RGB_ar037_2019_n_06_04_0.png" width="400">
+  <br>
+  <em>Generated segmentation mask</em>
+</p>
+
 
 ---
 
@@ -52,9 +55,11 @@ The original RGB image used as one of the inputs to the segmentation pipeline.
 
 The corresponding NRG (Near-Infrared, Red, Green) image, providing spectral information useful for vegetation analysis.
 
-```
-<nrg image>
-```
+<p align="center">
+  <img src="img_readme/NRG_ar037_2019_n_06_04_0.png" width="400">
+  <br>
+  <em>Generated segmentation mask</em>
+</p>
 
 ---
 
@@ -63,14 +68,16 @@ The corresponding NRG (Near-Infrared, Red, Green) image, providing spectral info
 The **generated segmentation mask** is produced during the pipeline after:
 
 - computing the RGB-based mask,
-- computing the NRG-based mask,
-- fusing both masks using morphological operations.
+- using NRG-based mask comparing with RGB mask,
+- optimalize using morphological operations.
 
 This mask represents the **final prediction** of dead tree locations.
 
-```
-<generated mask>
-```
+<p align="center">
+  <img src="img_readme/RGB_ar037_2019_n_06_04_0_mask.png" width="400">
+  <br>
+  <em>Generated segmentation mask</em>
+</p>
 
 ---
 

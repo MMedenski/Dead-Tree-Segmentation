@@ -164,14 +164,14 @@ python main.py --help
 
 ```bash
 python main.py \
-  --config config.yaml \
-  --num-images 5 \
-  --num-compare 5 \
-  --hue-min 0.75 \
-  --hue-max 0.95 \
-  --sat-thr 0.25 \
-  --val-thr 0.55 \
-  --output-dir output/final_run/
+   -c --config config.yaml \
+   -ni --num-images 5 \
+   -nc --num-compare 5 \
+   -h_min --hue-min 0.75 \
+   -h_max --hue-max 0.95 \
+   -s --sat-thr 0.25 \
+   -v --val-thr 0.55 \
+   -o --output-dir output/final_run/
 ```
 
 > Command-line arguments have **higher priority** than values defined in `config.yaml`.

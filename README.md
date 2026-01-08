@@ -45,7 +45,7 @@ The original RGB image used as one of the inputs to the segmentation pipeline.
 <p align="center">
   <img src="data/img_readme/RGB_ar037_2019_n_06_04_0.png" width="400">
   <br>
-  <em>Generated segmentation mask</em>
+  <em>RGB image (RGB_ar037_2019_n_06_04_0.png)</em>
 </p>
 
 
@@ -58,7 +58,7 @@ The corresponding NRG (Near-Infrared, Red, Green) image, providing spectral info
 <p align="center">
   <img src="data/img_readme/NRG_ar037_2019_n_06_04_0.png" width="400">
   <br>
-  <em>Generated segmentation mask</em>
+  <em>NRG image (NRG_ar037_2019_n_06_04_0.png)</em>
 </p>
 
 ---
@@ -76,7 +76,7 @@ This mask represents the **final prediction** of dead tree locations.
 <p align="center">
   <img src="data/img_readme/RGB_ar037_2019_n_06_04_0_mask.png" width="400">
   <br>
-  <em>Generated segmentation mask</em>
+  <em>Generated segmentation mask (RGB_ar037_2019_n_06_04_0_mask.png)</em>
 </p>
 
 ---
@@ -86,9 +86,9 @@ This mask represents the **final prediction** of dead tree locations.
 The **main mask (ground truth)** is a manually prepared binary mask used for evaluation. It represents the reference annotation against which the generated mask is compared.
 
 <p align="center">
-  <img src="data/img_readme/mask_ar037_2019_n_06_04_0" width="400">
+  <img src="data/img_readme/mask_ar037_2019_n_06_04_0.png" width="400">
   <br>
-  <em>Generated segmentation mask</em>
+  <em>Main mask (mask_ar037_2019_n_06_04_0.png)</em>
 </p>
 
 ---

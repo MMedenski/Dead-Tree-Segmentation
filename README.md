@@ -263,7 +263,6 @@ Dead-Tree-Segmentation-main/
 
 This project is suitable as:
 
-- an academic computer vision assignment,
 - a research prototype,
 - a baseline for further ML or DL-based approaches.
 

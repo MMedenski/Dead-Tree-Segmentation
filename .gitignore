@@ -9,9 +9,6 @@ config.yaml
 # Examples of datasets from code
 example_iou_results.csv
 
-# Library
-requirements.txt
-
 # generated segmentation outputs
 generated masks/
 

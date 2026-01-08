@@ -85,9 +85,11 @@ This mask represents the **final prediction** of dead tree locations.
 
 The **main mask (ground truth)** is a manually prepared binary mask used for evaluation. It represents the reference annotation against which the generated mask is compared.
 
-```
-<main mask>
-```
+<p align="center">
+  <img src="img_readme/mask_ar037_2019_n_06_04_0" width="400">
+  <br>
+  <em>Generated segmentation mask</em>
+</p>
 
 ---
 

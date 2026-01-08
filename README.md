@@ -213,6 +213,13 @@ python -m venv .venv
 ```bash
 .\.venv\Scripts\Activate.ps1
 ```
+**If you will get error type this command to get permition to environment**
+
+```
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+
+```
 
 ### 3️⃣ Install dependencies
 

@@ -14,34 +14,83 @@ import numpy as np
 import configparser
 from skimage import io, color, morphology, filters
 import matplotlib.pyplot as plt
-import os, glob
-import cv2
+import os, glob, cv2, yaml, argparse
 from sklearn.metrics import confusion_matrix, classification_report
 
-# Loading configuration from config.ini 
+# Loading configuration from config.yaml
 
-def load_config(path="config.ini"):
-    parser = configparser.ConfigParser()
-    parser.read(path)
+def load_config(path="config.yaml"):
+    with open(path, "r", encoding="utf-8") as f:
+        cfg = yaml.safe_load(f)
 
     config = {
+        "paths_img": cfg["paths"]["rgb"],
+        "paths_img_nrg": cfg["paths"]["nrg"],
+        "paths_mask": cfg["paths"]["masks"],
+        "output_dir": cfg["paths"]["output"],
 
-        "paths_img": parser["paths"]["rgb"],
-        "paths_img_nrg": parser["paths"]["nrg"],
-        "paths_mask": parser["paths"]["masks"],
+        "hue_min": float(cfg["thresholds"]["hue_min"]),
+        "hue_max": float(cfg["thresholds"]["hue_max"]),
+        "sat_thr": float(cfg["thresholds"]["sat_thr"]),
+        "val_thr": float(cfg["thresholds"]["val_thr"]),
 
-        "hue_min": parser.getfloat("thresholds", "hue_min"),
-        "hue_max": parser.getfloat("thresholds", "hue_max"),
-        "sat_thr": parser.getfloat("thresholds", "sat_thr"),
-        "val_thr": parser.getfloat("thresholds", "val_thr"),
-
-        "num_images": parser.getint("general", "num_images"),
-        "num_compare": parser.getint("general", "num_compare"),
+        "num_images": int(cfg["general"]["num_images"]),
+        "num_compare": int(cfg["general"]["num_compare"]),
     }
 
     return config
 
-config = load_config()
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description="Dead Tree Segmentation Pipeline (RGB + NRG)"
+    )
+
+    parser.add_argument("--config", type=str, default="config.yaml",
+                        help="Path to config.yaml file")
+
+    # Thresholds (override config)
+    parser.add_argument("--hue-min", type=float, help="HSV hue min threshold")
+    parser.add_argument("--hue-max", type=float, help="HSV hue max threshold")
+    parser.add_argument("--sat-thr", type=float, help="HSV saturation threshold")
+    parser.add_argument("--val-thr", type=float, help="HSV value threshold")
+
+    # General
+    parser.add_argument("--num-images", type=int, help="Number of images to preview")
+    parser.add_argument("--num-compare", type=int, help="Number of images for evaluation")
+
+    # Output
+    parser.add_argument("--output-dir", type=str, help="Output directory for results")
+
+    return parser.parse_args()
+
+
+args = parse_args()
+config = load_config(args.config)
+
+if args.hue_min is not None:
+    config["hue_min"] = args.hue_min
+if args.hue_max is not None:
+    config["hue_max"] = args.hue_max
+if args.sat_thr is not None:
+    config["sat_thr"] = args.sat_thr
+if args.val_thr is not None:
+    config["val_thr"] = args.val_thr
+
+if args.num_images is not None:
+    config["num_images"] = args.num_images
+if args.num_compare is not None:
+    config["num_compare"] = args.num_compare
+
+if args.output_dir is not None:
+    config["output_dir"] = args.output_dir
+
+# Check if num_compare is greater than num_images
+if config["num_compare"] > config["num_images"]:
+    raise ValueError(
+        f"Invalid configuration: num_compare ({config['num_compare']}) "
+        f"cannot be greater than num_images ({config['num_images']})."
+    )
+
 
 paths_img = sorted(glob.glob(config["paths_img"]))
 paths_img_nrg = sorted(glob.glob(config["paths_img_nrg"]))
@@ -147,19 +196,22 @@ def iou(mask1, mask2):
     iou_score = inter_sum / all_sum
     return iou_score
 
-def preview_loaded_images():
+def preview_loaded_images(num_images):
     if len(paths_img) == 0:
         print("No images found")
         return
+    preview_paths = paths_img[:num_images]
+    preview_paths_nrg = paths_img_nrg[:num_images]
+    preview_paths_mask = paths_mask[:num_images]
 
     idx = 0
 
     fig, axes = plt.subplots(1, 3, figsize=(18, 6))
 
     def draw():
-        img = io.imread(paths_img[idx])
-        nrg = io.imread(paths_img_nrg[idx])
-        mask = cv2.imread(paths_mask[idx], cv2.IMREAD_GRAYSCALE)
+        img = io.imread(preview_paths[idx])
+        nrg = io.imread(preview_paths_nrg[idx])
+        mask = cv2.imread(preview_paths_mask[idx], cv2.IMREAD_GRAYSCALE)
 
         axes[0].imshow(img)
         axes[0].set_title("RGB Image")
@@ -168,13 +220,13 @@ def preview_loaded_images():
         axes[1].set_title("NRG Image")
 
         axes[2].imshow(mask, cmap="gray")
-        axes[2].set_title("Generated Mask")
+        axes[2].set_title("Ground Truth Mask")
 
         for ax in axes:
             ax.axis("off")
 
         fig.suptitle(
-            f"{idx+1}/{len(paths_img)} | {os.path.basename(paths_img[idx])}",
+            f"{idx+1}/{len(preview_paths)} | {os.path.basename(preview_paths[idx])}",
             fontsize=14
         )
 
@@ -183,10 +235,10 @@ def preview_loaded_images():
     def on_key(event):
         nonlocal idx
         if event.key == "right":
-            idx = (idx + 1) % len(paths_img)
+            idx = (idx + 1) % len(preview_paths)
             draw()
         elif event.key == "left":
-            idx = (idx - 1) % len(paths_img)
+            idx = (idx - 1) % len(preview_paths)
             draw()
 
     fig.canvas.mpl_connect("key_press_event", on_key)
@@ -480,9 +532,7 @@ def save_iou_results(filename="iou_results.csv"):
     print(f"IoU results saved to: {save_path}")
 
 # Saves generated segmentation masks to a specified output directory
-def save_generated_masks(
-    output_dir=r"C:\Dead-Tree-Segmentation-main\data\generated_masks"
-):
+def save_generated_masks(output_dir):
     if len(comparison_results) == 0:
         print("No generated masks to save")
         return
@@ -499,16 +549,17 @@ def save_generated_masks(
     print(f"Generated masks saved to: {output_dir}")
 
 
-
 def main():
-    preview_loaded_images()
+    output_dir = config["output_dir"]
+
+    preview_loaded_images(num_images)
     run_evaluation()
     show_comparison_results()
     result_all_stats()
     cm = confusion_matrix_all()
     plot_confusion_matrix(cm)
     save_iou_results()
-    save_generated_masks()
+    save_generated_masks(output_dir)
 
 
 if __name__ == "__main__":

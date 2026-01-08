@@ -3,6 +3,16 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+# local config (user-specific paths)
+config.yaml
+
+# Examples of datasets from code
+example_iou_results.csv
+
+# generated segmentation outputs
+generated masks/
+
+
 # C extensions
 *.so
 

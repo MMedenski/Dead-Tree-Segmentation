@@ -129,13 +129,13 @@ All experiment parameters are defined in a YAML configuration file.
 
 ### Configuration files
 
-- `temp.config.yaml` – configuration template (tracked in git)
+- `temp_config.yaml` – configuration template (tracked in git)
 - `config.yaml` – local configuration file (ignored by git)
 
 Create your local configuration by copying the template:
 
 ```bash
-cp temp.config.yaml config.yaml
+cp temp_config.yaml config.yaml
 ```
 
 ### Configurable parameters include:
@@ -246,7 +246,7 @@ Dead-Tree-Segmentation-main/
 │
 ├── main.py                 # Main pipeline script
 ├── requirements.txt        # Project dependencies
-├── temp.config.yaml        # Configuration template
+├── temp_config.yaml        # Configuration template
 ├── config.yaml             # Local config (gitignored)
 ├── README.md
 ├── .gitignore

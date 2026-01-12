@@ -9,8 +9,12 @@ config.yaml
 # Examples of datasets from code
 example_iou_results.csv
 
-# generated segmentation outputs
+# Generated segmentation outputs
 generated masks/
+
+# Images for readme section
+data/img_readme/
+
 
 
 # C extensions

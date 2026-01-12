@@ -111,7 +111,7 @@ IoU scores for all evaluated image sets.
 The chart shows segmentation performance for each image, measured as the overlap between the predicted mask and the ground truth.
 
 <p align="center">
-  <img src="data/img_readme/img_comparison.png" width="400">
+  <img src="data/img_readme/img_comparison.png" width="800">
   <br>
   <em>Chart for comparison results(IoU)[img_comparison.png]</em>
 </p>

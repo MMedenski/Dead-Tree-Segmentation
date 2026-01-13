@@ -106,7 +106,7 @@ This allows for qualitative inspection of segmentation accuracy and typical erro
 
 ---
 
-### 6️⃣ Figure X
+### 6️⃣ IoU score chart
 IoU scores for all evaluated image sets.  
 The chart shows segmentation performance for each image, measured as the overlap between the predicted mask and the ground truth.
 

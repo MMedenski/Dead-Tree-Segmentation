@@ -10,10 +10,10 @@ config.yaml
 example_iou_results.csv
 
 # Generated segmentation outputs
-generated masks/
+generated_masks/
 
 # Images for readme section
-data/img_readme/
+img_readme/
 
 
 

@@ -106,17 +106,26 @@ This allows for qualitative inspection of segmentation accuracy and typical erro
 
 ---
 
-### 6️⃣ Figure X
-IoU scores for all evaluated image sets.  
-The chart shows segmentation performance for each image, measured as the overlap between the predicted mask and the ground truth.
-
-<p align="center">
-  <img src="data/img_readme/img_comparison.png" width="800">
-  <br>
-  <em>Chart for comparison results(IoU)[img_comparison.png]</em>
-</p>
-
-
+### 6️⃣ Output of results in csv
+A table containing IoU scores for evaluated images is automatically saved.
+File:
+```
+iou_results.csv
+```
+Format:
+```
+image_name - iou
+RGB_ar037_2019_n_06_04_0.png - 52.10%
+RGB_ar037_2019_n_07_05_0.png - 17.80%
+RGB_ar037_2019_n_07_17_1.png - 0.00%
+RGB_ar037_2019_n_08_14_0.png - 41.98%
+RGB_ar037_2019_n_13_13_0.png - 15.57%
+RGB_ar039_2019_n_02_04_0.png - 50.59%
+RGB_ar039_2019_n_02_10_0.png - 13.10%
+RGB_ar039_2019_n_03_04_0.png - 14.69%
+RGB_ar039_2019_n_04_10_0.png - 8.10%
+RGB_ar039_2019_n_04_13_0.png - 44.99%
+```
 ---
 
 ---
@@ -177,14 +186,18 @@ python main.py --help
 
 ```bash
 python main.py \
-   -c --config config.yaml \
-   -ni --num-images 5 \
-   -nc --num-compare 5 \
-   -h_min --hue-min 0.75 \
-   -h_max --hue-max 0.95 \
-   -s --sat-thr 0.25 \
-   -v --val-thr 0.55 \
-   -o --output-dir output/final_run/
+ -h, --help            show this help message and exit
+ -c, --config CONFIG / Path to YAML configuration file (default: config.yaml)
+ -h_min, --hue_min HUE_MIN  /  Minimum HSV hue threshold for RGB segmentation
+ -h_max, --hue_max HUE_MAX /  Maximum HSV hue threshold for RGB segmentation
+  -s, --sat_thr SAT_THR HSV / saturation threshold for RGB segmentation
+  -v, --val_thr VAL_THR HSV value / (brightness) threshold for RGB segmentation
+  -n_img, --num_images NUM_IMAGES /  Number of images to load or preview from the dataset
+  -n_cmp, --num_compare NUM_COMPARE / Number of images used for quantitative evaluation
+  -o, --output_dir OUTPUT_DIR / Output directory for generated masks, metrics and logs
+  -p_rgb, --path_rgb PATH_RGB / Path or glob pattern to RGB images (e.g. data/RGB_images/*.png)
+  -p_nrg, --path_nrg PATH_NRG / Path or glob pattern to NRG images (e.g. data/NRG_images/*.png)
+  -p_mask, --path_mask PATH_MASK / Path or glob pattern to ground truth masks (e.g. data/masks/*.png)
 ```
 
 > Command-line arguments have **higher priority** than values defined in `config.yaml`.
@@ -247,6 +260,11 @@ pip install -r requirements.txt
 ```bash
 python main.py
 ```
+or with CLI overrides:
+
+```bash
+python main.py -n_cmp 5 -o data/generated
+```
 
 Optional parameters can be supplied via the CLI.
 
@@ -255,19 +273,33 @@ Optional parameters can be supplied via the CLI.
 ## 📁 Project Structure
 
 ```
-Dead-Tree-Segmentation-main/
+Dead-Tree-Segmentation/
 │
-├── main.py                 # Main pipeline script
-├── requirements.txt        # Project dependencies
-├── temp_config.yaml        # Configuration template
-├── config.yaml             # Local config (gitignored)
+├── main.py
+├── requirements.txt
+├── temp_config.yaml
+├── config.yaml          # gitignored
 ├── README.md
 ├── .gitignore
+│
+├── src/
+│   ├── cli.py
+│   ├── config_loader.py
+│   ├── segmentation.py
+│   ├── evaluation.py
+│   ├── io_utils.py
+│   └── logger.py
+│
 ├── data/
 │   ├── RGB_images/
 │   ├── NRG_images/
 │   └── masks/
-└── output/                 # Generated results
+│
+├── data_examples/
+│   ├── example_generated_mask/
+│   └── example_iou_results.csv
+│   
+
 ```
 
 ---

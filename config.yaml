@@ -2,7 +2,7 @@ paths:
   rgb: ./data/RGB_images/*.png #<PATHTODATA>
   nrg: ./data/NRG_images/*.png #<PATHTODATA>
   masks: ./data/masks/*.png #<PATHTODATA>
-  output: ./data/generated_masks/ #<PATHTOOUTPUT>
+  output: ./data_examples/example_generated_mask/ #<PATHTOOUTPUT>
 
 thresholds:
   hue_min: 0.75

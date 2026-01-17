@@ -106,17 +106,19 @@ This allows for qualitative inspection of segmentation accuracy and typical erro
 
 ---
 
-### 6️⃣ Figure X
-IoU scores for all evaluated image sets.  
-The chart shows segmentation performance for each image, measured as the overlap between the predicted mask and the ground truth.
-
-<p align="center">
-  <img src="data/img_readme/img_comparison.png" width="800">
-  <br>
-  <em>Chart for comparison results(IoU)[img_comparison.png]</em>
-</p>
-
-
+### 6️⃣ Output of results in csv
+A table containing IoU scores for evaluated images is automatically saved.
+File:
+```
+iou_results.csv
+```
+Format:
+```
+image_filename,iou
+image_01.png,0.7421
+image_02.png,0.8153
+image_03.png,0.6910
+```
 ---
 
 ---

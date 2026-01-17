@@ -255,19 +255,34 @@ Optional parameters can be supplied via the CLI.
 ## 📁 Project Structure
 
 ```
-Dead-Tree-Segmentation-main/
+Dead-Tree-Segmentation/
 │
-├── main.py                 # Main pipeline script
-├── requirements.txt        # Project dependencies
-├── temp_config.yaml        # Configuration template
-├── config.yaml             # Local config (gitignored)
-├── README.md
-├── .gitignore
-├── data/
-│   ├── RGB_images/
-│   ├── NRG_images/
-│   └── masks/
-└── output/                 # Generated results
+├── main.py                 # Entry point – runs the full segmentation pipeline
+├── config.yaml             # Base configuration file (thresholds, parameters)
+├── temp_config.yaml        # Config shared for you to use.
+├── requirements.txt        # Python dependencies
+├── README.md               # Project documentation
+├── .gitignore              # Git ignore rules
+│
+├── src/                     # Source code (core logic)
+│   ├── cli.py              # Command-line interface (argparse)
+│   ├── config_loader.py    # Runtime config builder (defaults + YAML + CLI)
+│   ├── logger.py           # Central logging configuration
+│   ├── segmentation.py     # RGB/NRG segmentation and mask fusion
+│   ├── evaluation.py       # IoU and confusion matrix computation
+│   ├── io_utils.py         # Saving masks and CSV results
+│   ├── optimization.py     # Threshold optimization (grid search)
+│
+├── data/                    # User-provided datasets (recommended)
+│   ├── RGB_images/         # RGB input images
+│   ├── NRG_images/         # NRG input images
+│   ├── masks/              # Ground truth segmentation masks
+│   └── img_readme/         # Images for README section 
+│
+├── data_examples/           # Demo dataset and default output
+│   ├── example_generated_mask/ # Examples of generated masks
+│   └── example_iou_results.csv         # Table of example output results
+│
 ```
 
 ---

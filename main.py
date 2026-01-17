@@ -15,7 +15,7 @@ from src.segmentation import generate_segment_mask_rgb, generate_segment_mask_nr
 from src.evaluation import iou, compute_confusion_matrix
 from src.io_utils import save_iou_results, save_masks
 
-# Libraries 
+#Libraries
 import glob
 from skimage import io
 import cv2

@@ -8,12 +8,8 @@ from src.segmentation import (
 from src.evaluation import iou, compute_confusion_matrix
 from src.io_utils import save_iou_results, save_masks
 
-import glob
+import glob, logging, cv2, os
 from skimage import io
-import cv2
-import os
-import logging
-
 
 def main():
     # === Logging setup ===

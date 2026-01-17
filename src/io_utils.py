@@ -1,6 +1,4 @@
-import os
-import cv2
-import logging
+import os, cv2, logging, csv
 
 logger = logging.getLogger("dead_tree")
 

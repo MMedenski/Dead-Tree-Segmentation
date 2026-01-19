@@ -15,6 +15,9 @@ generated_masks/
 # Images for readme section
 img_readme/
 
+# Logs folder
+logs/
+
 
 
 # C extensions

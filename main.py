@@ -7,8 +7,9 @@ from src.segmentation import (
 )
 from src.evaluation import iou, compute_confusion_matrix
 from src.io_utils import save_iou_results, save_masks
+from src.logger import setup_logger
 
-import glob, logging, cv2, os
+import glob, logging, cv2, os, logging
 from skimage import io
 
 def main():
@@ -20,6 +21,10 @@ def main():
 
     # === Parse CLI ===
     args = parse_args()
+    logger = setup_logger(
+    level=getattr(logging, args.log_level)
+)
+
 
     # === Load config from YAML ===
     config = load_config(args.config)
@@ -102,15 +107,15 @@ def main():
         })
 
     # === Evaluation ===
-    logging.info(f"{n} images have been loaded to processing\n and {len(results)} images have been processed correctly")
+    logger.info(f"{n} images have been loaded to processing\n and {len(results)} images have been processed correctly")
     cm = compute_confusion_matrix(results)
-    logging.info(f"Confusion Matrix:\n{cm}")
+    logger.info(f"Confusion Matrix:\n{cm}")
 
     # === Save results ===
     save_iou_results(results)
     save_masks(results, config["output_dir"])
 
-    logging.info("Pipeline finished successfully")
+    logger.info("Pipeline finished successfully")
 
 
 if __name__ == "__main__":
